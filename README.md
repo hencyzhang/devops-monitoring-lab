@@ -3,7 +3,7 @@
 End-to-end DevOps/SRE homelab built on a Dell Latitude E7450 running Proxmox VE.
 
 ## Architecture
-
+```mermaid
 graph TD
     A[Proxmox VE 8] --> B[Ubuntu Server VM]
     B --> C[Monitoring Stack]
@@ -22,21 +22,20 @@ graph TD
     D3 --> D4
     C1 --> D1
     C1 --> C4
-
-
-
-
+```
 ## Tech Stack
-Layer	Tools
-Virtualization	Proxmox VE 8, QEMU/KVM
-Containers	Docker, Docker Compose
-Metrics	Prometheus, node-exporter
-Dashboards	Grafana
-Alerting	Alertmanager, ntfy.sh
-Backend	Flask, Python
-Database	PostgreSQL 16
-Message Queue	RabbitMQ
-Remote Access	Tailscale
+
+| Layer | Tools |
+|---|---|
+| Virtualization | Proxmox VE 8, QEMU/KVM |
+| Containers | Docker, Docker Compose |
+| Metrics | Prometheus, node-exporter |
+| Dashboards | Grafana |
+| Alerting | Alertmanager, ntfy.sh |
+| Backend | Flask, Python |
+| Database | PostgreSQL 16 |
+| Message Queue | RabbitMQ |
+| Remote Access | Tailscale |
 
 ## Key Features
 
@@ -50,7 +49,7 @@ Remote Access	Tailscale
 
 ## Repository Structure
 
-- `configs/` - Prometheus, Alertmanager, alert rules
-- `ecommerce/` - Microservices demo app
-- `docs/runbook.md` - Operational runbook
-- `scripts/setup.sh` - Setup script
+- configs/ - Prometheus, Alertmanager, alert rules
+- ecommerce/ - Microservices demo app
+- docs/runbook.md - Operational runbook
+- scripts/setup.sh - Setup script
