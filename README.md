@@ -1,68 +1,48 @@
-# DevOps Monitoring Lab
+# Homelab DevOps Platform
 
-A self-hosted monitoring stack built on a homelab (Proxmox VE + Ubuntu Server + Docker), demonstrating a production-style observability pipeline: metrics collection, visualization and alerting.
+End-to-end DevOps/SRE homelab built on a Dell Latitude E7450 running Proxmox VE.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph Ubuntu Server VM
-        NE[node-exporter<br/>:9100] --> Prom[Prometheus<br/>:9090]
-        Prom --> Graf[Grafana<br/>:3000]
-        Prom --> AM[Alertmanager<br/>:9093]
-    end
-    AM -->|webhook| ntfy[ntfy.sh]
-    ntfy --> Phone[Phone Push]
-```
-
+Proxmox VE (Type-1 Hypervisor)
+└── Ubuntu Server VM (Docker)
+├── Monitoring Stack
+│   ├── Prometheus (metrics scraper)
+│   ├── Grafana (dashboards)
+│   ├── Alertmanager → ntfy (mobile push)
+│   └── node-exporter (host metrics)
+└── Ecommerce Demo (microservices)
+├── Flask API (port 5000)
+├── PostgreSQL (orders DB)
+├── RabbitMQ (async order events)
+└── Notify Worker (email simulation)
 ## Tech Stack
 
-表格
+| Layer | Tools |
+|---|---|
+| Virtualization | Proxmox VE 8, QEMU/KVM |
+| Containers | Docker, Docker Compose |
+| Metrics | Prometheus, node-exporter |
+| Dashboards | Grafana |
+| Alerting | Alertmanager, ntfy.sh |
+| Backend | Flask, Python |
+| Database | PostgreSQL 16 |
+| Message Queue | RabbitMQ |
+| Remote Access | Tailscale (WireGuard mesh VPN) |
 
-| Component | Role | Port |
-| --- | --- | --- |
-| node-exporter | Host metrics exporter | 9100 |
-| Prometheus | Time-series DB + alert rules | 9090 |
-| Grafana | Dashboards / visualization | 3000 |
-| Alertmanager | Alert routing & notification | 9093 |
-| ntfy.sh | Free push notifications | - |
+## Projects
+
+- `configs/` — Prometheus scrape configs, alert rules, Alertmanager
+- `ecommerce/` — Flask + PostgreSQL + RabbitMQ microservices with structured logging, request_id tracing, and Prometheus metrics
+- `docs/runbook.md` — Operational runbook
+- `scripts/setup.sh` — One-command setup script
 
 ## Features
 
-- CPU / Memory / Disk / Network metrics with 15s scrape interval
-- Pre-built dashboard (Grafana ID 1860, Node Exporter Full)
-- Alert rules:
-  - InstanceDown: target unreachable for 1 min (critical)
-  - HighCPU: CPU usage > 80% for 1 min (warning)
-  - DiskAlmostFull: disk usage > 90% for 5 min (critical)
-- Push notifications to phone via ntfy
-- Alert auto-resolution
-
-## Quick Start
-
-git clone [https://github.com/hencyzhang/devops-monitoring-lab.git](https://github.com/hencyzhang/devops-monitoring-lab.git)
-cd devops-monitoring-lab
-./scripts/setup.sh
-
-Then open:
-
-- Grafana: http://vm-ip:3000 (admin / admin)
-- Prometheus: http://vm-ip:9090
-
-## Alerting Setup
-
-1. Install the ntfy app on your phone
-2. Subscribe to a topic
-3. Edit configs/alertmanager.yml webhook URL
-4. Restart: docker compose restart alertmanager
-
-## Hardware
-
-- Host: Dell Latitude E7450 (16GB RAM)
-- Hypervisor: Proxmox VE 8.x
-- VM: Ubuntu Server 24.04 LTS (2 vCPU / 4GB RAM / 32GB disk)
-- Networking: Tailscale for remote access
-
-## Author
-
-hencyzhang - DevOps / SRE career transition
+- Infrastructure monitoring (CPU, memory, disk, network)
+- Business monitoring (request rate, API latency P95, order count)
+- Alerting with mobile push notification
+- Structured logging with per-module files, rotation (7-day retention, 50MB sharding)
+- Distributed tracing via request_id across Flask API → PostgreSQL → RabbitMQ → notify worker
+- Remote access from anywhere via Tailscale
+- Automated scheduled shutdown/startup via cron + BIOS RTC wake
