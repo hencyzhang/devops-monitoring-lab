@@ -1,124 +1,119 @@
-﻿# 运维手册
+﻿# Operations Guide
 
-## 日常操作
+## Daily Operations
 
-### 查看服务状态
+### Check service status
 
 ```bash
-# monitor-lb: 监控栈
+# monitor-lb: monitoring stack
 docker ps
 
-# app-node1/2: Flask 服务
+# app-node1/2: Flask service
 sudo systemctl status ecommerce
 
-# db-node: 数据库和消息队列
+# db-node: database and queue
 docker ps
 ```
 
-### 查看应用日志
+### View application logs
 
 ```bash
-# Flask 日志（app-node1 或 app-node2）
+# Flask logs
 sudo journalctl -u ecommerce -f
 
-# 分模块日志
+# Modular logs
 tail -f ~/ecommerce-app/logs/app.log
 tail -f ~/ecommerce-app/logs/startup.log
 tail -f ~/ecommerce-app/logs/api.log
 tail -f ~/ecommerce-app/logs/order.log
 ```
 
-### 重启服务
+### Restart services
 
 ```bash
-# 重启 Flask（app-node1/2）
+# Flask (app-node1/2)
 sudo systemctl restart ecommerce
 
-# 重启 Nginx（monitor-lb）
+# Nginx (monitor-lb)
 sudo systemctl restart nginx
 
-# 重启监控栈（monitor-lb）
+# Monitoring stack (monitor-lb)
 cd ~/home-observability-stack && docker compose restart
 
-# 重启数据库（db-node）
+# Database (db-node)
 docker restart shop-db shop-rabbitmq
 ```
 
-## 故障排查
+## Troubleshooting
 
-### 网站打不开
+### Website not loading
 
-1. 检查 Nginx: `curl -I http://192.168.0.154`
-2. 检查 app 节点: `curl http://192.168.0.156:5000/api/products`
-3. 检查 app 节点2: `curl http://192.168.0.157:5000/api/products`
-4. 如果一台挂了，Nginx 会自动只转发到正常的那台
+1. Check Nginx: `curl -I http://192.168.0.154`
+2. Check app-node1: `curl http://192.168.0.156:5000/api/products`
+3. Check app-node2: `curl http://192.168.0.157:5000/api/products`
+4. If one node is down, Nginx routes to the healthy one
 
 ### 502 Bad Gateway
 
-Flask 没启动。SSH 到 app-node1/2:
+Flask is not running. SSH to app-node1/2:
+
 ```bash
 sudo systemctl status ecommerce
 sudo systemctl restart ecommerce
 ```
 
-### Grafana 没数据
+### Grafana no data
 
-1. 检查 Prometheus targets: http://192.168.0.154:9090/targets
-2. 确认 ecommerce target 是 UP
-3. 如果是 DOWN，检查 app 节点是否在线
+1. Check Prometheus targets: http://192.168.0.154:9090/targets
+2. Confirm ecommerce target is UP
+3. If DOWN, check if app nodes are reachable
 
-### 数据库连不上
+### Database connection error
 
-1. db-node 上: `docker ps` 看 postgres 容器
+1. On db-node: `docker ps`
 2. `docker logs shop-db`
-3. 确认防火墙没挡 5432 端口
+3. Check port 5432 is open
 
-### PVE 开机后服务没起来
+### Services not starting after PVE boot
 
-1. VM 是否开机自启: `qm config <id> | grep onboot`
-2. Flask 是否 systemd 自启: `sudo systemctl is-enabled ecommerce`
-3. Docker 容器是否 `restart: always`: `docker inspect <容器名> | grep RestartPolicy`
+1. VM autostart: `qm config <id> | grep onboot`
+2. Flask systemd: `sudo systemctl is-enabled ecommerce`
+3. Docker containers: `docker inspect <name> | grep RestartPolicy`
 
-## 定时任务
+## Cron Jobs
 
-### 定时关机/开机（PVE Shell）
+### Auto shutdown/boot (PVE shell)
 
 ```bash
-# 每天 00:00 关机
+# Shutdown at midnight daily
 echo "0 0 * * * /sbin/shutdown -h now" | crontab -
 
-# BIOS 中设置每天 09:00 自动开机
-# Dell BIOS → Power Management → Auto Power On
+# Power on at 9am daily via BIOS
+# Dell BIOS -> Power Management -> Auto Power On
 ```
 
-### 日志清理
+## Update product data
 
-日志自动按天轮转，保留 7 天，无需手动清理。
+Run `D:\workspace\PVE\scrape.bat` on Windows to scrape latest joybuy.de products.
 
-## 更新商品数据
+## Remote Access (Tailscale)
 
-在 Windows 上双击 `D:\workspace\PVE\scrape.bat`，自动爬取 joybuy.de 最新商品并写入数据库。详见《Joybuy 爬虫手册》。
-
-## 外网访问
-
-所有服务通过 Tailscale 访问：
-
-| 服务 | Tailscale 地址 |
-|------|---------------|
-| 电商 | http://100.125.96.30 |
+| Service | Tailscale URL |
+|---------|---------------|
+| Shop | http://100.125.96.30 |
 | Grafana | http://100.125.96.30:3000 |
 | app-node1 SSH | ssh devops@100.64.88.3 |
 | app-node2 SSH | ssh devops@100.116.57.112 |
 | db-node SSH | ssh devops@100.119.22.30 |
 
-Windows 上双击 `D:\workspace\PVE\ssh-all.bat` 一键打开 4 个 SSH 标签页。
+Windows: double-click `D:\workspace\PVE\ssh-all.bat` to open 4 SSH tabs.
 
-## 密码清单
+## Passwords
 
-| 项目 | 用户名 | 密码 |
-|------|--------|------|
+| Item | Username | Password |
+|------|----------|----------|
 | VM SSH | devops | Zhang@123 |
 | PostgreSQL | shop | shop123 |
 | RabbitMQ | guest | guest |
 | Grafana | admin | admin |
-| PVE Web UI | root | 安装时设置 |
+| PVE Web UI | root | set during install |
