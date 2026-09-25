@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Joybuy ShopLab{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="/static/app.js?v=4"></script>
+</head><body>
+<div class="hdr">
+<div class="logo" onclick="location.href='/'">Joybuy ShopLab</div>
+<div class="srch"><input id="q" placeholder="Suche..." onkeydown="if(event.key=='Enter')doSearch()"><button onclick="doSearch()" id="searchBtn">Suchen</button></div>
+<div class="links">
+<select id="langSel" onchange="changeLang(this.value)" style="padding:6px;border:1px solid #ddd;border-radius:4px">
+<option value="de">Deutsch</option>
+<option value="en">English</option>
+<option value="zh">中文</option>
+</select>
+<a href="/orders" id="ordersLink">Bestellungen</a>
+<span class="cart" onclick="toggleCart()" id="cartLink">Warenkorb<span class="badge" id="badge">0</span></span>
+</div>
+</div>
+{% block body %}{% endblock %}
+<div class="ov" id="ov" onclick="toggleCart()"></div>
+<div class="drawer" id="drawer">
+<div class="dh"><h3 id="cartTitle">Warenkorb</h3><span style="cursor:pointer" onclick="toggleCart()">X</span></div>
+<div class="db" id="cbody"></div>
+<div class="df"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><span id="totalLabel">Gesamt:</span><b id="total">EUR 0</b></div><button class="btn" onclick="checkout()" id="checkoutBtn">Zur Kasse</button></div>
+</div>
+</body></html>

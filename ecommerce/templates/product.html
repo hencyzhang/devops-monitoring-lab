@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ p.name }} - Joybuy ShopLab{% endblock %}
+{% block body %}
+<div class="wrap"><div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;background:#fff;padding:24px;border-radius:8px">
+<img src="{{ p.image }}" onerror="this.style.background='#eee'" style="width:100%;border-radius:8px">
+<div>
+<h2>{{ p.name }}</h2>
+<p style="color:#999;margin:8px 0">{{ p.category }}</p>
+<div class="price">EUR{{ "%.2f"|format(p.price) }}</div>
+<div class="{{ 'ok' if p.stock>10 else 'low' }}">{{ 'Auf Lager ('+p.stock|string+')' if p.stock>0 else 'Ausverkauft' }}</div>
+<p style="margin:16px 0;color:#666">Kostenlose Lieferung in 2-4 Tagen. 30 Tage Rückgabe.</p>
+<div style="display:flex;gap:12px;margin-top:20px">
+<button onclick="openCheckout()" style="flex:1;background:#e2231a;color:#fff;border:none;padding:14px;border-radius:4px;cursor:pointer;font-size:16px;font-weight:600">Jetzt kaufen</button>
+<button onclick="addThis()" style="flex:1;background:#222;color:#fff;border:none;padding:14px;border-radius:4px;cursor:pointer;font-size:16px">In den Warenkorb</button>
+</div>
+</div></div></div>
+
+<div id="checkoutOv" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.4);z-index:300" onclick="closeCheckout()"></div>
+<div id="checkoutPanel" style="display:none;position:fixed;top:0;right:-500px;width:480px;height:100%;background:#fff;z-index:301;transition:right .3s;box-shadow:-4px 0 16px rgba(0,0,0,.15);overflow-y:auto">
+  <div style="padding:24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee">
+    <h2>Verfügbarkeit</h2>
+    <span style="cursor:pointer;font-size:24px" onclick="closeCheckout()">&times;</span>
+  </div>
+  <div style="padding:24px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px">
+      <div id="optDel" onclick="selectOpt('del')" style="border:2px solid #e2231a;border-radius:8px;padding:20px;text-align:center;cursor:pointer">
+        <div style="font-size:32px;margin-bottom:8px">&#128666;</div>
+        <div style="font-weight:600;font-size:16px">Lieferung</div>
+        <div style="color:#999;font-size:13px;margin:8px 0">morgen bis 15:00 Uhr<br>bei Bestellung vor 23:00 Uhr</div>
+        <div style="color:#28a745;font-weight:600">KOSTENLOS</div>
+      </div>
+      <div id="optPick" onclick="selectOpt('pick')" style="border:2px solid #eee;border-radius:8px;padding:20px;text-align:center;cursor:pointer">
+        <div style="font-size:32px;margin-bottom:8px">&#127978;</div>
+        <div style="font-weight:600;font-size:16px">Abholung</div>
+        <div style="color:#999;font-size:13px;margin:8px 0">frühestens morgen<br>8:00-20:00</div>
+        <div style="color:#28a745;font-weight:600">KOSTENLOS</div>
+      </div>
+    </div>
+    <div style="background:#f9f9f9;border-radius:8px;padding:16px;margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Preis:</span><strong>EUR{{ "%.2f"|format(p.price) }}</strong></div>
+      <div style="display:flex;justify-content:space-between"><span>Versand:</span><span style="color:#28a745">Kostenlos</span></div>
+    </div>
+    <button onclick="confirmOrder({{ p.id }})" style="width:100%;background:#e2231a;color:#fff;border:none;padding:16px;border-radius:4px;font-size:16px;font-weight:600;cursor:pointer">Jetzt kaufen</button>
+  </div>
+</div>
+
+<script>
+var productData = {{ p|tojson }};
+var selectedOpt = 'del';
+var redirectTimer = null;
+
+function addThis() {
+  if (redirectTimer) { clearTimeout(redirectTimer); redirectTimer = null; }
+  addC(productData);
+}
+function selectOpt(opt) {
+  selectedOpt = opt;
+  document.getElementById('optDel').style.borderColor = opt == 'del' ? '#e2231a' : '#eee';
+  document.getElementById('optPick').style.borderColor = opt == 'pick' ? '#e2231a' : '#eee';
+}
+function openCheckout() {
+  document.getElementById('checkoutOv').style.display = 'block';
+  document.getElementById('checkoutPanel').style.display = 'block';
+  document.getElementById('checkoutPanel').style.right = '0';
+}
+function closeCheckout() {
+  document.getElementById('checkoutOv').style.display = 'none';
+  document.getElementById('checkoutPanel').style.right = '-500px';
+}
+function confirmOrder(pid) {
+  fetch('/api/orders', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({product_id:pid})}).then(function(){
+    closeCheckout();
+    toast('Bestellung erfolgreich!');
+    redirectTimer = setTimeout(function(){ location.href='/orders'; }, 1500);
+  });
+}
+</script>
+{% endblock %}
