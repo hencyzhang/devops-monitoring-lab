@@ -3,53 +3,42 @@
 End-to-end DevOps/SRE homelab built on a Dell Latitude E7450 running Proxmox VE.
 
 ## Architecture
-```mermaid
-graph TD
-    A[Proxmox VE 8] --> B[Ubuntu Server VM]
-    B --> C[Monitoring Stack]
-    B --> D[Ecommerce Microservices]
-    C --> C1[Prometheus]
-    C --> C2[Grafana]
-    C --> C3[Alertmanager]
-    C --> C4[node-exporter]
-    C3 --> C5[ntfy Mobile Push]
-    D --> D1[Flask API]
-    D --> D2[PostgreSQL]
-    D --> D3[RabbitMQ]
-    D --> D4[Notify Worker]
-    D1 --> D2
-    D1 --> D3
-    D3 --> D4
-    C1 --> D1
-    C1 --> C4
-```
-## Tech Stack
 
-| Layer | Tools |
-|---|---|
-| Virtualization | Proxmox VE 8, QEMU/KVM |
-| Containers | Docker, Docker Compose |
-| Metrics | Prometheus, node-exporter |
-| Dashboards | Grafana |
-| Alerting | Alertmanager, ntfy.sh |
-| Backend | Flask, Python |
+Proxmox VE 8.4 (192.168.0.10)
+├── VM 100: monitor-lb (Nginx LB + Prometheus + Grafana + Alertmanager)
+├── VM 101: db-node (PostgreSQL + RabbitMQ)
+├── VM 102: app-node1 (Flask ecommerce)
+└── VM 103: app-node2 (Flask ecommerce)
+## Stack
+
+| Component | Technology |
+|-----------|-----------|
+| Hypervisor | Proxmox VE 8.4 |
+| OS | Ubuntu Server 24.04 |
+| Load Balancer | Nginx (round-robin) |
+| App | Flask + Gunicorn |
 | Database | PostgreSQL 16 |
-| Message Queue | RabbitMQ |
-| Remote Access | Tailscale |
+| Message Queue | RabbitMQ 3 |
+| Monitoring | Prometheus + Grafana + Alertmanager |
+| Alerting | ntfy.sh |
+| VPN | Tailscale |
 
-## Key Features
+## Services
 
-- Infrastructure monitoring via node-exporter
-- Business monitoring: request rate, API latency P95, order count
-- Alerting pushed to phone via ntfy
-- Structured logging: per-module files, 7-day retention, 50MB rotation
-- Distributed tracing with request_id across services
-- Remote access via Tailscale
-- Scheduled shutdown + BIOS RTC wake
+| Service | URL |
+|---------|-----|
+| Ecommerce Shop | http://192.168.0.154 |
+| Grafana | http://192.168.0.154:3000 |
+| Prometheus | http://192.168.0.154:9090 |
+| RabbitMQ Mgmt | http://192.168.0.155:15672 |
 
-## Repository Structure
+## Features
 
-- configs/ - Prometheus, Alertmanager, alert rules
-- ecommerce/ - Microservices demo app
-- docs/runbook.md - Operational runbook
-- scripts/setup.sh - Setup script
+- Nginx round-robin load balancing across 2 app nodes
+- Real product data scraped from joybuy.de
+- Multi-language (DE/EN/ZH)
+- Cart, checkout, order history
+- Prometheus metrics from all nodes
+- Grafana dashboards
+- ntfy push notifications
+- Tailscale remote access
