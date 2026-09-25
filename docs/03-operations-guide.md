@@ -112,7 +112,7 @@ Windows: double-click `D:\workspace\PVE\ssh-all.bat` to open 4 SSH tabs.
 
 | Item | Username | Password |
 |------|----------|----------|
-| VM SSH | devops | Zhang@123 |
+| VM SSH | devops | devops |
 | PostgreSQL | shop | shop123 |
 | RabbitMQ | guest | guest |
 | Grafana | admin | admin |
