@@ -4,41 +4,48 @@ End-to-end DevOps/SRE homelab built on a Dell Latitude E7450 running Proxmox VE.
 
 ## Architecture
 
-- **Proxmox VE 8.4** (host: 192.168.0.10)
-  - **VM 100 monitor-lb**: Nginx load balancer + Prometheus + Grafana + Alertmanager
-  - **VM 101 db-node**: PostgreSQL 16 + RabbitMQ 3
-  - **VM 102 app-node1**: Flask ecommerce app
-  - **VM 103 app-node2**: Flask ecommerce app
-
-Nginx distributes traffic round-robin to app-node1 and app-node2.
-Both app nodes connect to the same PostgreSQL and RabbitMQ on db-node.
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|-----------|
-| Hypervisor | Proxmox VE 8.4 |
-| OS | Ubuntu Server 24.04 |
-| Load Balancer | Nginx |
-| App | Flask |
-| Database | PostgreSQL 16 |
-| Message Queue | RabbitMQ 3 |
-| Monitoring | Prometheus + Grafana |
-| Alerting | Alertmanager + ntfy.sh |
-| VPN | Tailscale |
-
-## Services
-
-| Service | Local URL | Tailscale URL |
-|---------|-----------|---------------|
-| Ecommerce Shop | http://192.168.0.154 | http://100.125.96.30 |
-| Grafana | http://192.168.0.154:3000 | http://100.125.96.30:3000 |
-| RabbitMQ | http://192.168.0.155:15672 | http://100.119.22.30:15672 |
-
-## Features
-
+```mermaid
+graph TB
+    User[User Browser] --> LB[Nginx Load Balancer<br/>VM100 monitor-lb<br/>192.168.0.154]
+    
+    LB --> App1[Flask App Node 1<br/>VM102 app-node1<br/>192.168.0.156]
+    LB --> App2[Flask App Node 2<br/>VM103 app-node2<br/>192.168.0.157]
+    
+    App1 --> DB[(PostgreSQL 16<br/>VM101 db-node<br/>192.168.0.155)]
+    App2 --> DB
+    App1 --> MQ[RabbitMQ<br/>VM101 db-node]
+    App2 --> MQ
+    
+    subgraph Monitoring
+        Prom[Prometheus<br/>VM100]
+        Graf[Grafana<br/>VM100:3000]
+        Alert[Alertmanager<br/>VM100]
+    end
+    
+    Prom --> App1
+    Prom --> App2
+    Prom --> DB
+    Graf --> Prom
+    Alert --> Prom
+    Alert --> ntfy[ntfy.sh Push]
+```   ## Tech StackComponent	Technology
+Hypervisor	Proxmox VE 8.4
+OS	Ubuntu Server 24.04
+Load Balancer	Nginx
+App	Flask
+Database	PostgreSQL 16
+Message Queue	RabbitMQ 3
+Monitoring	Prometheus + Grafana
+Alerting	Alertmanager + ntfy.sh
+VPN	Tailscale
+Services
+Service	Local URL
+Ecommerce Shop	http://192.168.0.154
+Grafana	http://192.168.0.154:3000
+RabbitMQ Mgmt	http://192.168.0.155:15672
+Features
 - Nginx round-robin load balancing across 2 app nodes
-- Real product data scraped from joybuy.de
+- Real product data scraped from [joybuy.de](https://joybuy.de)
 - Multi-language UI (German / English / Chinese)
 - Shopping cart, checkout, order history
 - Prometheus metrics from all nodes
